@@ -15,20 +15,32 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
+    <style>
+        /* Custom styles for carousel */
+        .carousel-container { position: relative; }
+        .carousel { display: flex; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; /* Firefox */ -ms-overflow-style: none;  /* IE and Edge */ }
+        .carousel::-webkit-scrollbar { display: none; /* Chrome, Safari and Opera */ }
+        .carousel-item { flex: 0 0 auto; width: 16.666667%; /* 1/6 of the width */ padding: 0 0.25rem; transition: transform 300ms ease-in-out; }
+        .carousel-item:hover { transform: scale(1.1); z-index: 10; }
+        .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(0,0,0,0.5); border-radius: 9999px; padding: 0.5rem; cursor: pointer; z-index: 20; color: white; }
+        .carousel-arrow.left { left: 1rem; }
+        .carousel-arrow.right { right: 1rem; }
+        .hero-gradient { background-image: linear-gradient(to top, rgba(20, 20, 20, 1) 0, rgba(20, 20, 20, 0) 60%, rgba(20, 20, 20, 1) 100%); }
+    </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
         // --- Firebase Configuration ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : { 
-                apiKey: "YOUR_API_KEY", 
-                authDomain: "YOUR_AUTH_DOMAIN", 
-                projectId: "YOUR_PROJECT_ID"
-              };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCJO4295BqmQDaTGx9phEqqauojFz3jiqY",
+            authDomain: "my-netflix-clone-dce5c.firebaseapp.com",
+            projectId: "my-netflix-clone-dce5c",
+            storageBucket: "my-netflix-clone-dce5c.appspot.com",
+            messagingSenderId: "114699121432",
+            appId: "1:114699121432:web:f4abc4c7bca5e623cde46d"
+        };
 
         // --- Initialize Firebase ---
         firebase.initializeApp(firebaseConfig);
@@ -46,7 +58,6 @@
                     setLoading(false);
                 });
                 
-                // Sign in anonymously if no other user is present
                 if (!auth.currentUser) {
                      auth.signInAnonymously().catch(error => {
                         console.error("Anonymous sign-in failed:", error);
@@ -82,7 +93,6 @@
                         await auth.signInWithEmailAndPassword(email, password);
                     } else {
                         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                        // Create a user document in Firestore
                         await db.collection("users").doc(userCredential.user.uid).set({
                             email: userCredential.user.email,
                             favorites: []
@@ -98,7 +108,6 @@
                 try {
                     const result = await auth.signInWithPopup(provider);
                     const user = result.user;
-                    // Create or merge user doc in Firestore
                     await db.collection("users").doc(user.uid).set({
                         email: user.email,
                         favorites: []
@@ -124,36 +133,18 @@
                             <h1 className="text-3xl font-bold mb-6 text-white">{isSignIn ? 'Sign In' : 'Sign Up'}</h1>
                             {error && <p className="bg-red-500 text-white p-3 rounded mb-4">{error}</p>}
                             <form onSubmit={handleAuthAction}>
-                                <input
-                                    type="email"
-                                    placeholder="Email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full p-4 mb-4 bg-gray-700 rounded border-none text-white"
-                                />
-                                <input
-                                    type="password"
-                                    placeholder="Password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full p-4 mb-4 bg-gray-700 rounded border-none text-white"
-                                />
-                                <button type="submit" className="w-full p-4 bg-red-600 rounded font-bold text-white hover:bg-red-700">
-                                    {isSignIn ? 'Sign In' : 'Sign Up'}
-                                </button>
+                                <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-4 mb-4 bg-gray-700 rounded border-none text-white" />
+                                <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-4 mb-4 bg-gray-700 rounded border-none text-white" />
+                                <button type="submit" className="w-full p-4 bg-red-600 rounded font-bold text-white hover:bg-red-700">{isSignIn ? 'Sign In' : 'Sign Up'}</button>
                             </form>
-                            <div className="text-center my-4">
-                                <p className="text-gray-500">OR</p>
-                            </div>
+                            <div className="text-center my-4"><p className="text-gray-500">OR</p></div>
                              <button onClick={handleGoogleSignIn} className="w-full p-4 bg-white text-black rounded font-bold hover:bg-gray-200 flex items-center justify-center">
                                 <svg className="w-6 h-6 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.612-3.311-11.383-7.935l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.012,35.195,44,30.023,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
                                 Sign In with Google
                             </button>
                             <div className="mt-8 text-gray-500">
                                 {isSignIn ? 'New to Netflix?' : 'Already have an account?'}
-                                <button onClick={() => setIsSignIn(!isSignIn)} className="text-white font-bold ml-2 hover:underline">
-                                    {isSignIn ? 'Sign up now.' : 'Sign in now.'}
-                                </button>
+                                <button onClick={() => setIsSignIn(!isSignIn)} className="text-white font-bold ml-2 hover:underline">{isSignIn ? 'Sign up now.' : 'Sign in now.'}</button>
                             </div>
                         </div>
                     </div>
@@ -161,27 +152,114 @@
             );
         };
 
-        // --- Home Screen (Placeholder) ---
+        // --- Home Screen ---
         const HomeScreen = () => {
+            const [scrolled, setScrolled] = React.useState(false);
+
+            React.useEffect(() => {
+                const handleScroll = () => {
+                    const isScrolled = window.scrollY > 10;
+                    if (isScrolled !== scrolled) {
+                        setScrolled(isScrolled);
+                    }
+                };
+                document.addEventListener('scroll', handleScroll);
+                return () => {
+                    document.removeEventListener('scroll', handleScroll);
+                };
+            }, [scrolled]);
+            
             return (
-                <div className="bg-black text-white min-h-screen">
-                     <header className="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-50">
+                <div className="bg-[#141414] text-white">
+                    <header className={`fixed top-0 w-full z-50 transition-colors duration-500 ${scrolled ? 'bg-black' : 'bg-transparent'}`}>
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                             <div className="flex items-center space-x-8">
                                 <img className="h-8" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix Logo" />
+                                <nav className="hidden md:flex space-x-4">
+                                    <a href="#" className="text-white hover:text-gray-300 font-semibold">Home</a>
+                                    <a href="#" className="text-white hover:text-gray-300">TV Shows</a>
+                                    <a href="#" className="text-white hover:text-gray-300">Movies</a>
+                                    <a href="#" className="text-white hover:text-gray-300">New & Popular</a>
+                                    <a href="#" className="text-white hover:text-gray-300">My List</a>
+                                </nav>
                             </div>
-                            <button 
-                                onClick={() => auth.signOut()} 
-                                className="bg-red-600 px-4 py-2 rounded font-bold text-white hover:bg-red-700"
-                            >
-                                Sign Out
-                            </button>
+                            <div className="flex items-center space-x-4">
+                                <button onClick={() => auth.signOut()} className="bg-red-600 px-4 py-2 rounded font-bold text-white hover:bg-red-700">Sign Out</button>
+                            </div>
                         </div>
                     </header>
-                    <main className="pt-24">
-                        <h1 className="text-4xl text-center">Welcome to Netflix!</h1>
-                        <p className="text-center mt-4">Content will be loaded here soon.</p>
+                    
+                    <main>
+                        {/* Hero Section */}
+                        <div className="relative h-[56.25vw]">
+                             <img src="https://placehold.co/1920x1080/000000/ffffff?text=Hero+Image" className="absolute top-0 left-0 w-full h-full object-cover" alt="Hero background"/>
+                            <div className="absolute top-0 left-0 w-full h-full hero-gradient"></div>
+                            <div className="relative z-10 flex flex-col justify-center h-full px-4 sm:px-6 lg:px-8 text-white">
+                                <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold w-full lg:w-1/2">Movie Title Goes Here</h1>
+                                <p className="mt-4 text-sm md:text-lg max-w-lg">This is a brief and enticing description of the movie. It should capture the essence of the film and make you want to watch it right away.</p>
+                                <div className="flex space-x-4 mt-8">
+                                    <button className="flex items-center bg-white text-black font-bold rounded px-4 md:px-6 py-2 md:py-3 hover:bg-gray-200 transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" /></svg>
+                                        Play
+                                    </button>
+                                    <button className="flex items-center bg-gray-500 bg-opacity-70 text-white font-bold rounded px-4 md:px-6 py-2 md:py-3 hover:bg-gray-600 transition">
+                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        More Info
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Movie Carousels */}
+                        <div className="px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+                           <MovieCarousel title="Trending Now" />
+                           <MovieCarousel title="Top Picks for You" />
+                           <MovieCarousel title="New Releases" />
+                        </div>
                     </main>
+                </div>
+            );
+        };
+
+        // --- Movie Carousel Component ---
+        const MovieCarousel = ({ title }) => {
+            const mockMovies = [
+                { id: 1, title: "Movie 1", posterUrl: "https://placehold.co/400x600/1a1a1a/ffffff?text=Movie+1" },
+                { id: 2, title: "Movie 2", posterUrl: "https://placehold.co/400x600/2a2a2a/ffffff?text=Movie+2" },
+                { id: 3, title: "Movie 3", posterUrl: "https://placehold.co/400x600/3a3a3a/ffffff?text=Movie+3" },
+                { id: 4, title: "Movie 4", posterUrl: "https://placehold.co/400x600/4a4a4a/ffffff?text=Movie+4" },
+                { id: 5, title: "Movie 5", posterUrl: "https://placehold.co/400x600/5a5a5a/ffffff?text=Movie+5" },
+                { id: 6, title: "Movie 6", posterUrl: "https://placehold.co/400x600/6a6a6a/ffffff?text=Movie+6" },
+                { id: 7, title: "Movie 7", posterUrl: "https://placehold.co/400x600/7a7a7a/ffffff?text=Movie+7" },
+                { id: 8, title: "Movie 8", posterUrl: "https://placehold.co/400x600/8a8a8a/ffffff?text=Movie+8" },
+            ];
+            
+            const carouselRef = React.useRef(null);
+
+            const scroll = (direction) => {
+                if (carouselRef.current) {
+                    const { scrollLeft, clientWidth } = carouselRef.current;
+                    const scrollTo = direction === 'left' 
+                        ? scrollLeft - clientWidth 
+                        : scrollLeft + clientWidth;
+                    carouselRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
+                }
+            };
+
+            return (
+                <div>
+                    <h2 className="text-xl font-bold mb-4">{title}</h2>
+                    <div className="carousel-container">
+                        <div className="carousel-arrow left" onClick={() => scroll('left')}>&#10094;</div>
+                        <div className="carousel" ref={carouselRef}>
+                            {mockMovies.map(movie => (
+                                <div key={movie.id} className="carousel-item">
+                                    <img src={movie.posterUrl} alt={movie.title} className="w-full h-auto rounded-md cursor-pointer" />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="carousel-arrow right" onClick={() => scroll('right')}>&#10095;</div>
+                    </div>
                 </div>
             );
         };
