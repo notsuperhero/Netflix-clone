@@ -67,7 +67,9 @@
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            line-clamp: 3; /* Added for standard compatibility */
         }
+        
     </style>
 </head>
 <body>
@@ -165,12 +167,8 @@
             };
 
             return (
-                <div className="relative h-screen w-screen">
-                    <img 
-                        src="https://assets.nflxext.com/ffe/siteui/vlv3/51e53f54-0d9f-40ec-9e05-c030def06ac9/66a88384-c2ba-4d96-a5a6-7aa0b6a757a6/IN-en-20240513-popsignuptwoweeks-perspective_alpha_website_large.jpg" 
-                        alt="background" 
-                        className="absolute inset-0 w-full h-full object-cover"
-                    />
+                <div className="relative h-screen w-screen bg-black">
+                   
                     <div className="absolute inset-0 bg-black bg-opacity-50"></div>
                     <header className="absolute top-0 left-0 p-4 md:p-8">
                            <img className="h-8" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix Logo" />
@@ -236,7 +234,11 @@
                     setLoading(true);
                     setError(null);
                     try {
-                        const response = await fetch(`${fetchUrl}?api_key=${TMDB_API_KEY}`);
+                        const separator = fetchUrl.includes('?') ? '&' : '?';
+                        const fullUrl = `${fetchUrl}${separator}api_key=${TMDB_API_KEY}`;
+                        console.log(`DEBUG: Full URL being used for "${title}":`, fullUrl); // Keep this debug line for now
+
+                        const response = await fetch(fullUrl);
                         if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status} from ${fetchUrl}`);
                         }
@@ -455,11 +457,11 @@
                             />
                             <MovieCarousel 
                                 title="Action Movies" 
-                                fetchUrl={`https://api.themoviedb.org/3/discover/movie?with_genres=28`} // Genre ID for Action
+                                fetchUrl={`https://api.themoviedb.org/3/discover/movie?with_genres=28 & api_key=89165c319c75689a6672dee5d756e62c`} // Genre ID for Action
                             />
                             <MovieCarousel 
                                 title="Comedy Movies" 
-                                fetchUrl={`https://api.themoviedb.org/3/discover/movie?with_genres=35`} // Genre ID for Comedy
+                                fetchUrl={`https://api.themoviedb.org/3/discover/movie?with_genres=35 & api_key=89165c319c75689a6672dee5d756e62c`} // Genre ID for Comedy
                             />
                             {/* You can add more carousels with different categories/genres by finding their IDs in TMDB API docs */}
                         </div>
